@@ -10,7 +10,201 @@ window.addEventListener('pageshow', (event) => {
   }
 });
 
+function setupAuthDialogs() {
+  const signupDialog = document.getElementById('signup-dialog');
+  const signupOpenBtn = document.getElementById('signup-open-btn');
+  const signupCloseBtn = document.getElementById('signup-close-btn');
+  const signupForm = document.getElementById('signup-form');
+  const loginDialog = document.getElementById('login-dialog');
+  const loginBtn = document.getElementById('login-btn');
+  const loginCloseBtn = document.getElementById('login-close-btn');
+  const loginForm = document.getElementById('login-form');
+  if (signupOpenBtn && signupDialog) {
+    signupOpenBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      signupDialog.showModal();
+    });
+  }
+  if (signupCloseBtn && signupDialog) {
+    signupCloseBtn.addEventListener('click', () => signupDialog.close());
+  }
+  if (signupDialog) {
+    signupDialog.addEventListener('click', (e) => {
+      if (e.target === signupDialog) signupDialog.close();
+    });
+  }
+  if (loginBtn && loginDialog) {
+    loginBtn.addEventListener('click', () => loginDialog.showModal());
+  }
+  if (loginCloseBtn && loginDialog) {
+    loginCloseBtn.addEventListener('click', () => loginDialog.close());
+  }
+  if (loginDialog) {
+    loginDialog.addEventListener('click', (e) => {
+      if (e.target === loginDialog) loginDialog.close();
+    });
+  }
+
+  function showError(dialogEl, message) {
+    if (!dialogEl) return;
+    let errEl = dialogEl.querySelector('.auth-error');
+    if (!errEl) {
+      errEl = document.createElement('p');
+      errEl.className = 'auth-error';
+      errEl.style.color = '#c00';
+      errEl.style.marginTop = '8px';
+      errEl.style.fontSize = '13px';
+      dialogEl.querySelector('form')?.appendChild(errEl);
+    }
+    errEl.textContent = message;
+    errEl.style.display = 'block';
+  }
+
+  function clearError(dialogEl) {
+    const errEl = dialogEl?.querySelector('.auth-error');
+    if (errEl) errEl.style.display = 'none';
+  }
+
+  async function syncSessionWithBackend(idToken) {
+    const res = await fetch('/api/auth/firebase-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken }),
+      credentials: 'include'
+    });
+    const data = res.ok ? await res.json().catch(() => ({})) : null;
+    if (!res.ok) {
+      const err = (data && data.error) || res.statusText || 'Login failed';
+      throw new Error(err);
+    }
+    return data;
+  }
+
+  if (signupForm && typeof firebase !== 'undefined') {
+    signupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearError(signupDialog);
+      const passwordEl = document.getElementById('signup-password');
+      const confirmEl = document.getElementById('signup-password-confirm');
+      const emailEl = document.getElementById('signup-email');
+      if (passwordEl && confirmEl && passwordEl.value !== confirmEl.value) {
+        confirmEl.setCustomValidity('Passwords do not match');
+        confirmEl.reportValidity();
+        return;
+      }
+      if (confirmEl) confirmEl.setCustomValidity('');
+      const email = emailEl?.value?.trim();
+      const password = passwordEl?.value;
+      if (!email || !password) return;
+      const submitBtn = signupForm.querySelector('.signup-submit');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Signing up…';
+      }
+      try {
+        const config = window.FIREBASE_CONFIG || {};
+        if (!config.apiKey || config.apiKey === 'YOUR_API_KEY') {
+          showError(signupDialog, 'Firebase is not configured. Set FIREBASE_CONFIG in the page.');
+          return;
+        }
+        if (!firebase.apps.length) firebase.initializeApp(config);
+        const userCred = await firebase.auth().createUserWithEmailAndPassword(email, password);
+        const idToken = await userCred.user.getIdToken();
+        await syncSessionWithBackend(idToken);
+        signupDialog.close();
+        window.location.reload();
+      } catch (err) {
+        showError(signupDialog, err.message || 'Sign up failed');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Sign up';
+        }
+      }
+    });
+  }
+
+  if (loginForm && typeof firebase !== 'undefined') {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearError(loginDialog);
+      const emailEl = document.getElementById('login-email');
+      const passwordEl = document.getElementById('login-password');
+      const email = emailEl?.value?.trim();
+      const password = passwordEl?.value;
+      if (!email || !password) return;
+      const submitBtn = loginForm.querySelector('.login-submit');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Logging in…';
+      }
+      try {
+        const config = window.FIREBASE_CONFIG || {};
+        if (!config.apiKey || config.apiKey === 'YOUR_API_KEY') {
+          showError(loginDialog, 'Firebase is not configured. Set FIREBASE_CONFIG in the page.');
+          return;
+        }
+        if (!firebase.apps.length) firebase.initializeApp(config);
+        const userCred = await firebase.auth().signInWithEmailAndPassword(email, password);
+        const idToken = await userCred.user.getIdToken();
+        await syncSessionWithBackend(idToken);
+        loginDialog.close();
+        window.location.reload();
+      } catch (err) {
+        showError(loginDialog, err.message || 'Log in failed');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Log in';
+        }
+      }
+    });
+  }
+}
+
+function updateNavAuthState(user) {
+  const authButtons = document.getElementById('nav-auth-buttons');
+  const userSection = document.getElementById('nav-user-section');
+  const userEmailEl = document.getElementById('nav-user-email');
+  if (!authButtons || !userSection || !userEmailEl) return;
+  if (user && user.email) {
+    authButtons.style.display = 'none';
+    userEmailEl.textContent = user.email;
+    userEmailEl.title = user.email;
+    userSection.style.display = 'flex';
+  } else {
+    authButtons.style.display = 'flex';
+    userSection.style.display = 'none';
+    userEmailEl.textContent = '';
+    userEmailEl.title = '';
+  }
+}
+
+function setupAuthStateListener() {
+  if (typeof firebase === 'undefined') return;
+  const config = window.FIREBASE_CONFIG || {};
+  if (!config.apiKey || config.apiKey === 'YOUR_API_KEY') return;
+  if (!firebase.apps.length) firebase.initializeApp(config);
+  firebase.auth().onAuthStateChanged((user) => {
+    updateNavAuthState(user);
+  });
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        await firebase.auth().signOut();
+        window.location.reload();
+      } catch (err) {
+        console.error('Logout failed:', err);
+        window.location.reload();
+      }
+    });
+  }
+}
+
 window.customStart = () => {
+  setupAuthDialogs();
+  setupAuthStateListener();
   const recentPadList = document.getElementById('recent-pads');
   if (recentPadList) {
     recentPadList.replaceChildren();

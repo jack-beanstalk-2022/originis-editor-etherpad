@@ -53,6 +53,12 @@
         }
     },
     {
+      "name": "firebase",
+      "hooks": {
+        "expressCreateServer": "ep_etherpad-lite/node/hooks/express/firebase"
+      }
+    },
+    {
       "name": "padurlsanitize",
       "hooks": {
         "expressCreateServer": "ep_etherpad-lite/node/hooks/express/padurlsanitize"

@@ -173,6 +173,15 @@
     .signup-link:hover {
       color: var(--color-accent);
     }
+    #nav-user-email {
+      font-size: 14px;
+      color: var(--color-foreground);
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: default;
+    }
     #signup-dialog {
       position: relative;
       border: 1px solid var(--color-border);
@@ -384,8 +393,14 @@
     <h1>Originis Editor</h1>
     <div style="flex-grow: 1"></div>
     <div style="display: flex; align-items: center; gap: 12px;">
-      <a href="#" class="signup-link" id="signup-open-btn">Sign up</a>
-      <button type="button" class="nav-auth-btn login-btn" id="login-btn">Login</button>
+      <div id="nav-auth-buttons" style="display: flex; align-items: center; gap: 12px;">
+        <a href="#" class="signup-link" id="signup-open-btn">Sign up</a>
+        <button type="button" class="nav-auth-btn login-btn" id="login-btn">Login</button>
+      </div>
+      <div id="nav-user-section" style="display: none; align-items: center; gap: 12px;">
+        <span id="nav-user-email" title=""></span>
+        <button type="button" class="nav-auth-btn login-btn" id="logout-btn">Log out</button>
+      </div>
       <button class="settings-button" aria-label="Settings">
         <svg width="30px" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="settings-icon">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
@@ -497,70 +512,18 @@
     </div>
     <% } %>
   </div>
-  <script src="<%=entrypoint%>"></script>
-
+  <!-- Firebase SDK: replace with your project config from Firebase Console -->
+  <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-auth-compat.js"></script>
   <script>
-    (function () {
-      var signupDialog = document.getElementById("signup-dialog");
-      var signupOpenBtn = document.getElementById("signup-open-btn");
-      var signupCloseBtn = document.getElementById("signup-close-btn");
-      var signupForm = document.getElementById("signup-form");
-
-      if (signupOpenBtn && signupDialog) {
-        signupOpenBtn.addEventListener("click", function (e) {
-          e.preventDefault();
-          signupDialog.showModal();
-        });
-      }
-      if (signupCloseBtn && signupDialog) {
-        signupCloseBtn.addEventListener("click", function () {
-          signupDialog.close();
-        });
-      }
-      signupDialog && signupDialog.addEventListener("click", function (e) {
-        if (e.target === signupDialog) signupDialog.close();
-      });
-      if (signupForm) {
-        signupForm.addEventListener("submit", function (e) {
-          e.preventDefault();
-          var password = document.getElementById("signup-password");
-          var confirm = document.getElementById("signup-password-confirm");
-          if (password && confirm && password.value !== confirm.value) {
-            confirm.setCustomValidity("Passwords do not match");
-            confirm.reportValidity();
-            return;
-          }
-          confirm && confirm.setCustomValidity("");
-          signupDialog && signupDialog.close();
-        });
-      }
-
-      var loginDialog = document.getElementById("login-dialog");
-      var loginBtn = document.getElementById("login-btn");
-      var loginCloseBtn = document.getElementById("login-close-btn");
-      var loginForm = document.getElementById("login-form");
-
-      if (loginBtn && loginDialog) {
-        loginBtn.addEventListener("click", function () {
-          loginDialog.showModal();
-        });
-      }
-      if (loginCloseBtn && loginDialog) {
-        loginCloseBtn.addEventListener("click", function () {
-          loginDialog.close();
-        });
-      }
-      loginDialog && loginDialog.addEventListener("click", function (e) {
-        if (e.target === loginDialog) loginDialog.close();
-      });
-      if (loginForm) {
-        loginForm.addEventListener("submit", function (e) {
-          e.preventDefault();
-          loginDialog && loginDialog.close();
-        });
-      }
-    })();
+    window.FIREBASE_CONFIG = window.FIREBASE_CONFIG || {
+      apiKey: "AIzaSyDjg3R6uloREIFpK3BVH9_jRXLALsS6PZ0",
+      authDomain: "adept-bastion-482216-k1.firebaseapp.com",
+      projectId: "adept-bastion-482216-k1",
+      appId: "1:511506915846:web:77084d165e9a197210d987"
+    };
   </script>
+  <script src="<%=entrypoint%>"></script>
 
   <% e.begin_block("indexCustomScripts"); %>
   <script src="static/skins/<%=encodeURI(settings.skinName)%>/index.js?v=<%=settings.randomVersionString%>"></script>
