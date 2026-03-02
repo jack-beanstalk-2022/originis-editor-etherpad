@@ -166,17 +166,23 @@ function updateNavAuthState(user) {
   const authButtons = document.getElementById('nav-auth-buttons');
   const userSection = document.getElementById('nav-user-section');
   const userEmailEl = document.getElementById('nav-user-email');
+  const padDatalist = document.querySelector('.pad-datalist');
+  const createPadWrapper = document.getElementById('wrapper');
   if (!authButtons || !userSection || !userEmailEl) return;
   if (user && user.email) {
     authButtons.style.display = 'none';
     userEmailEl.textContent = user.email;
     userEmailEl.title = user.email;
     userSection.style.display = 'flex';
+    if (padDatalist) padDatalist.style.display = 'block';
+    if (createPadWrapper) createPadWrapper.style.display = '';
   } else {
     authButtons.style.display = 'flex';
     userSection.style.display = 'none';
     userEmailEl.textContent = '';
     userEmailEl.title = '';
+    if (padDatalist) padDatalist.style.display = 'none';
+    if (createPadWrapper) createPadWrapper.style.display = 'none';
   }
 }
 
@@ -205,6 +211,11 @@ function setupAuthStateListener() {
 window.customStart = () => {
   setupAuthDialogs();
   setupAuthStateListener();
+  // Hide Recent Pads and create-pad section until auth state is known; show only when logged in (see updateNavAuthState)
+  const padDatalist = document.querySelector('.pad-datalist');
+  if (padDatalist) padDatalist.style.display = 'none';
+  const createPadWrapper = document.getElementById('wrapper');
+  if (createPadWrapper) createPadWrapper.style.display = 'none';
   const recentPadList = document.getElementById('recent-pads');
   if (recentPadList) {
     recentPadList.replaceChildren();
