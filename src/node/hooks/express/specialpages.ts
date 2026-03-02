@@ -163,8 +163,11 @@ const handleLiveReload = async (args: ArgsExpressType, padString: string, timeSl
         res.header('Content-Type', 'application/javascript');
         res.send(output)
       })
+      const indexTemplate = settings.skinName === 'originis'
+        ? 'ep_etherpad-lite/static/skins/originis/home.html'
+        : 'ep_etherpad-lite/templates/index.html';
       setRouteHandler('/', (req: any, res: any) => {
-        res.send(eejs.require('ep_etherpad-lite/templates/index.html', {req, entrypoint: '/watch/index?hash=' + hash, settings}));
+        res.send(eejs.require(indexTemplate, {req, entrypoint: '/watch/index?hash=' + hash, settings}));
       })
     })
 
@@ -329,9 +332,12 @@ exports.expressCreateServer = async (_hookName: string, args: ArgsExpressType, c
       res.send(timeSliderWrite.output)
     })
 
-    // serve index.html under /
+    // serve index.html or skin landing page under /
+    const indexTemplate = settings.skinName === 'originis'
+      ? 'ep_etherpad-lite/static/skins/originis/home.html'
+      : 'ep_etherpad-lite/templates/index.html';
     args.app.get('/', (req: any, res: any) => {
-      res.send(eejs.require('ep_etherpad-lite/templates/index.html', {req, settings, entrypoint: "./"+fileNameIndex}));
+      res.send(eejs.require(indexTemplate, {req, settings, entrypoint: "./"+fileNameIndex}));
     });
 
 

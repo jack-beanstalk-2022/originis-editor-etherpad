@@ -10,7 +10,8 @@ function getCookie(name: string) {
 
 
 function handleTransferOfSession() {
-  const transferNowButton = document.querySelector('[data-l10n-id="index.transferSessionNow"]')! as HTMLButtonElement;
+  const transferNowButton = document.querySelector('[data-l10n-id="index.transferSessionNow"]') as HTMLButtonElement;
+  if (!transferNowButton) return;
 
   transferNowButton.addEventListener('click', async () => {
     transferNowButton.style.display = 'inline-flex';
@@ -35,6 +36,7 @@ function handleTransferOfSession() {
     copyLinkSection.style.display = 'block';
 
     const copyButton = document.querySelector('#copy-link-section .btn-secondary') as HTMLButtonElement
+    if (!copyButton) return;
     const responseData = await responseWithId.json();
     copyButton.addEventListener('click', async ()=>{
       await navigator.clipboard.writeText(responseData.id);
@@ -49,8 +51,9 @@ function handleTransferOfSession() {
 
 
 const handleSettingsButtonClick = () => {
-  const settingsButton = document.querySelector('.settings-button')!;
+  const settingsButton = document.querySelector('.settings-button');
   const settingsDialog = document.getElementById('settings-dialog') as HTMLDialogElement;
+  if (!settingsButton || !settingsDialog) return;
   let initialSettingsHtml: string;
 
   settingsDialog.addEventListener('click', (e) => {
@@ -70,7 +73,8 @@ const handleSettingsButtonClick = () => {
 
 
 const handleMenuBarClicked = () => {
-  const menuBar = document.getElementById('button-bar')!;
+  const menuBar = document.getElementById('button-bar');
+  if (!menuBar) return;
   menuBar.querySelectorAll('button').forEach((button, index)=>{
     button.addEventListener('click', ()=>{
       menuBar.querySelectorAll('button').forEach((btn)=>btn.classList.remove('active-btn'));
@@ -78,7 +82,9 @@ const handleMenuBarClicked = () => {
 
       const sections: NodeListOf<HTMLDivElement> = document.querySelectorAll('#settings-dialog > div');
       sections.forEach((section, index)=>index >= 1 && (section.style.display = 'none'));
-      (sections[index +1] as HTMLElement).style.display = 'block';
+      if (sections[index + 1]) {
+        (sections[index + 1] as HTMLElement).style.display = 'block';
+      }
     });
   })
 

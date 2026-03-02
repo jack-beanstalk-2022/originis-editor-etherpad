@@ -1,0 +1,11 @@
+body {
+  color: #1a1a1a;
+  color: var(--text-color);
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-family: var(--main-font-family);
+}
+
+h1 {
+  color: #c9a227;
+  color: var(--primary-color);
+}
