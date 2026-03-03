@@ -70,6 +70,7 @@
   "pad.toolbar.clearAuthorship.title": "Clear Authorship Colors (Ctrl+Shift+C)",
   "pad.toolbar.import_export.title": "Import/Export from/to different file formats",
   "pad.toolbar.timeslider.title": "Timeslider",
+  "pad.toolbar.review.title": "Review",
   "pad.toolbar.savedRevision.title": "Save Revision",
   "pad.toolbar.settings.title": "Settings",
   "pad.toolbar.embed.title": "Share and Embed this pad",
@@ -191,6 +192,14 @@
   "timeslider.month.december": "December",
 
   "timeslider.unnamedauthors": "{{num}} unnamed {[plural(num) one: author, other: authors ]}",
+
+  "review.pageTitle": "{{appTitle}} Review",
+  "review.title": "Review: large edits",
+  "review.subtitle": "Revisions with more than 100 characters added",
+  "review.backToPad": "Back to pad",
+  "review.loading": "Loading…",
+  "review.empty": "No large additions found.",
+  "review.error": "Failed to load review data.",
   "pad.savedrevs.marked": "This revision is now marked as a saved revision",
   "pad.savedrevs.timeslider": "You can see saved revisions by visiting the timeslider",
   "pad.userlist.entername": "Enter your name",

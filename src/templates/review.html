@@ -1,0 +1,95 @@
+<%
+  var langs = require("ep_etherpad-lite/node/hooks/i18n").availableLangs
+%>
+<!doctype html>
+<html translate="no" class="pad <%=settings.skinVariants%>">
+<head>
+  <title data-l10n-id="review.pageTitle" data-l10n-args='{ "appTitle": "<%=settings.title%>" }'><%=settings.title%> Review</title>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="shortcut icon" href="../../favicon.ico">
+  <link rel="stylesheet" href="../../static/css/pad.css?v=<%=settings.randomVersionString%>">
+  <link rel="stylesheet" href="../../static/skins/<%=encodeURI(settings.skinName)%>/pad.css?v=<%=settings.randomVersionString%>">
+  <link rel="localizations" type="application/l10n+json" href="../../locales.json" />
+  <style>
+    .review-pad-iframe {
+      display: block;
+      width: 100%;
+      min-height: 360px;
+      height: 70vh;
+      border: 1px solid var(--border-color, #ccc);
+      border-radius: 4px;
+      margin-bottom: 1rem;
+      background: #fff;
+    }
+    .review-large-additions {
+      margin-top: 1rem;
+    }
+    .review-large-additions h3 {
+      font-size: 1rem;
+      margin: 0 0 0.5rem 0;
+    }
+    .review-revisions-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .review-revisions-list li {
+      margin: 0.25rem 0;
+    }
+    /* Same palette as iframe .large-addition-N for list item color coding */
+    .review-rev-0 { background-color: #ffcccc; }
+    .review-rev-1 { background-color: #ccffcc; }
+    .review-rev-2 { background-color: #ccccff; }
+    .review-rev-3 { background-color: #ffffcc; }
+    .review-rev-4 { background-color: #ffccff; }
+    .review-rev-5 { background-color: #ccffff; }
+    .review-rev-6 { background-color: #ffddcc; }
+    .review-rev-7 { background-color: #ddccff; }
+    .review-rev-8 { background-color: #ccffdd; }
+    .review-rev-9 { background-color: #ffccdd; }
+    .review-revisions-list li a {
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      display: inline-block;
+    }
+    #padbody.review .toolbar {
+      display: flex;
+    }
+  </style>
+</head>
+<body id="padbody" class="review limwidth">
+  <div id="editbar" class="toolbar">
+    <div id="toolbar-overlay"></div>
+    <ul class="menu_left" role="toolbar">
+      <li>
+        <a href="<%= typeof backToPadPath !== 'undefined' ? backToPadPath : '#' %>" title="Back to pad" data-l10n-id="review.backToPad" data-l10n-attrs="title"><strong>&lt;</strong></a>
+      </li>
+    </ul>
+    <ul class="menu_right" role="toolbar">
+      <li data-type="button" data-key="home">
+        <a href="<%= (typeof backToPadPath !== 'undefined' && backToPadPath ? backToPadPath.replace(/\/p\/[^/]*$/, '') : '') || '/' %>" data-l10n-id="pad.toolbar.home.title" data-l10n-attrs="title">
+          <span class="buttonicon buttonicon-home"></span>
+        </a>
+      </li>
+    </ul>
+    <span class="show-more-icon-btn"></span>
+  </div>
+  <div id="review-container">
+    <% if (typeof reviewedPadPath !== 'undefined' && reviewedPadPath) { %>
+    <iframe id="review-pad-iframe" src="<%= reviewedPadPath %>" class="review-pad-iframe" title="Reviewed pad"></iframe>
+    <% } %>
+    <% if (typeof largeAdditionItems !== 'undefined' && Array.isArray(largeAdditionItems) && largeAdditionItems.length > 0) { %>
+    <div class="review-large-additions">
+      <h3 data-l10n-id="review.largeAdditionsTitle">Suspicious Revisions</h3>
+      <ul class="review-revisions-list">
+        <% largeAdditionItems.forEach(function(item, index) { %>
+        <li><a class="review-rev-<%= index % 10 %>" href="<%= typeof backToPadPath !== 'undefined' ? backToPadPath : '' %>/timeslider#<%= item.rev %>">Rev <%= item.rev %>: <%= item.author || 'anonymous' %> pasted / imported <%= item.addedChars %> chars on <%= item.formattedTime %></a></li>
+        <% }); %>
+      </ul>
+    </div>
+    <% } %>
+  </div>
+</body>
+</html>

@@ -58,6 +58,18 @@ html.outer-editor, html.inner-editor {
   color: inherit;
 }
 
+/* Review page: text from large additions (color index 0–9, cycles) */
+#innerdocbody .large-addition-0 { background-color: #ffcccc; }
+#innerdocbody .large-addition-1 { background-color: #ccffcc; }
+#innerdocbody .large-addition-2 { background-color: #ccccff; }
+#innerdocbody .large-addition-3 { background-color: #ffffcc; }
+#innerdocbody .large-addition-4 { background-color: #ffccff; }
+#innerdocbody .large-addition-5 { background-color: #ccffff; }
+#innerdocbody .large-addition-6 { background-color: #ffddcc; }
+#innerdocbody .large-addition-7 { background-color: #ddccff; }
+#innerdocbody .large-addition-8 { background-color: #ccffdd; }
+#innerdocbody .large-addition-9 { background-color: #ffccdd; }
+
 option {
   text-transform: capitalize;
 }

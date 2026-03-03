@@ -230,8 +230,10 @@ window.customStart = () => {
     recentPadListData = JSON.parse(recentPadsFromLocalStorage);
   }
 
-  // Remove duplicates based on pad name and sort by timestamp
+  // Remove duplicates based on pad name, exclude _reviewed pads, and sort by timestamp
   recentPadListData = recentPadListData.filter(
+      (pad) => !pad.name.endsWith('_reviewed')
+  ).filter(
       (pad, index, self) => index === self.findIndex((p) => p.name === pad.name)
   ).sort((a, b) => new Date(a.timestamp) > new Date(b.timestamp) ? -1 : 1);
 

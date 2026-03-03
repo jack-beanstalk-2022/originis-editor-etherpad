@@ -71,9 +71,13 @@ const getParameters = [
   },
   {
     name: 'showControls',
-    checkVal: 'true',
+    checkVal: null,
     callback: (val) => {
-      $('#editbar').css('display', 'flex');
+      if (val === 'false') {
+        $('#editbar').css('display', 'none');
+      } else {
+        $('#editbar').css('display', 'flex');
+      }
     },
   },
   {

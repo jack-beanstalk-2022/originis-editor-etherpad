@@ -9,7 +9,11 @@ const hooks = require('../../../static/js/pluginfw/hooks');
 import settings, {getEpVersion} from '../../utils/Settings';
 import util from 'node:util';
 const webaccess = require('./webaccess');
+import readOnlyManager from '../../db/ReadOnlyManager';
 const plugins = require('../../../static/js/pluginfw/plugin_defs');
+const padManager = require('../../db/PadManager');
+import {deserializeOps, unpack} from '../../../static/js/Changeset';
+import {Builder} from '../../../static/js/Builder';
 
 import {build, buildSync} from 'esbuild'
 import {ArgsExpressType} from "../../types/ArgsExpressType";
@@ -128,7 +132,185 @@ const convertTypescript = (content: string) => {
   }
 }
 
-const handleLiveReload = async (args: ArgsExpressType, padString: string, timeSliderString: string, indexString: any) => {
+const MIN_ADDITION_CHARS = 100;
+/** Number of highlight colors for large additions (cycles if more revisions). */
+const LARGE_ADDITION_PALETTE_SIZE = 10;
+
+/**
+ * Returns the number of characters inserted by a changeset (sum of lengths of all '+' ops).
+ */
+const getInsertionSize = (changeset: string): number => {
+  const {ops} = unpack(changeset);
+  let total = 0;
+  for (const op of deserializeOps(ops)) {
+    if (op.opcode === '+') total += op.chars;
+  }
+  return total;
+};
+
+/**
+ * Returns text inserted by each '+' op in the changeset (from charBank in order).
+ */
+const getInsertedStringsFromChangeset = (changeset: string): string[] => {
+  const {ops, charBank} = unpack(changeset);
+  const result: string[] = [];
+  let bankIndex = 0;
+  for (const op of deserializeOps(ops)) {
+    if (op.opcode === '+') {
+      const segment = charBank.slice(bankIndex, bankIndex + op.chars);
+      bankIndex += op.chars;
+      result.push(segment);
+    }
+  }
+  return result;
+};
+
+/** Item for the review page "large additions" list (rev, author, time, addedChars). */
+type ReviewItem = { rev: number; author: string; timestamp: number; addedChars: number; formattedTime: string };
+
+const formatReviewTime = (ts: number): string => {
+  if (!ts) return '';
+  return new Date(ts).toLocaleString();
+};
+
+/** [start, end) character ranges in the pad text. */
+type TextRange = [number, number];
+
+const mergeRanges = (ranges: TextRange[]): TextRange[] => {
+  if (ranges.length === 0) return [];
+  const sorted = [...ranges].sort((a, b) => a[0] - b[0]);
+  const out: TextRange[] = [sorted[0]];
+  for (let i = 1; i < sorted.length; i++) {
+    const [s, e] = sorted[i];
+    const last = out[out.length - 1];
+    if (s <= last[1]) {
+      last[1] = Math.max(last[1], e);
+    } else {
+      out.push([s, e]);
+    }
+  }
+  return out;
+};
+
+/**
+ * Renders the review page: creates/updates pad "${padId}_reviewed" with the
+ * current pad's atext/apool (final version), highlights text from large
+ * additions that still appears, then serves review.html with an iframe
+ * pointing at that pad.
+ */
+const handleReviewPage = (entrypoint: string) => async (req: any, res: any, next: Function) => {
+  const padId = decodeURIComponent(req.params.pad);
+  try {
+    const exists = await padManager.doesPadExist(padId);
+    if (!exists) {
+      res.status(404).send('Pad not found');
+      return;
+    }
+    const pad = await padManager.getPad(padId);
+    const reviewedPadId = `${padId}_reviewed`;
+    await pad.copyPadWithoutHistory(reviewedPadId, true, '');
+    const reviewedPad = await padManager.getPad(reviewedPadId);
+    const finalText = reviewedPad.text();
+
+    /** Ranges per revision index (0-based index into largeAdditionItems). */
+    const rangesPerRev: TextRange[][] = [];
+    const largeAdditionItems: ReviewItem[] = [];
+    const head = pad.getHeadRevisionNumber();
+    for (let rev = 1; rev <= head; rev++) {
+      const revData = await pad.getRevision(rev);
+      const changeset = revData.changeset;
+      const addedChars = getInsertionSize(changeset);
+      if (addedChars <= MIN_ADDITION_CHARS) continue;
+      const timestamp = revData.meta?.timestamp ?? 0;
+      const revRanges: TextRange[] = [];
+      const insertedBlocks = getInsertedStringsFromChangeset(changeset);
+      for (const block of insertedBlocks) {
+        if (block.trim().length === 0) continue;
+        const substrings = block.split('\n').filter((s) => s.trim().length > 0);
+        for (const needle of substrings) {
+          let idx = 0;
+          while ((idx = finalText.indexOf(needle, idx)) >= 0) {
+            revRanges.push([idx, idx + needle.length]);
+            idx += 1;
+          }
+        }
+      }
+      const merged = mergeRanges(revRanges);
+      if (merged.length === 0) continue;
+      rangesPerRev.push(merged);
+      largeAdditionItems.push({
+        rev,
+        author: revData.meta?.author ?? '',
+        timestamp,
+        addedChars,
+        formattedTime: formatReviewTime(timestamp),
+      });
+    }
+
+    /** Non-overlapping segments (start, end, colorIndex). Overlaps resolved by lowest colorIndex. */
+    const segments: [number, number, number][] = [];
+    if (rangesPerRev.length > 0) {
+      type Event = { pos: number; type: 'start' | 'end'; revIndex: number };
+      const events: Event[] = [];
+      for (let revIndex = 0; revIndex < rangesPerRev.length; revIndex++) {
+        for (const [start, end] of rangesPerRev[revIndex]) {
+          events.push({ pos: start, type: 'start', revIndex });
+          events.push({ pos: end, type: 'end', revIndex });
+        }
+      }
+      events.sort((a, b) => a.pos !== b.pos ? a.pos - b.pos : (a.type === 'end' ? -1 : 1) - (b.type === 'end' ? -1 : 1));
+      const active = new Set<number>();
+      let segmentStart = 0;
+      for (const e of events) {
+        if (active.size > 0 && e.pos > segmentStart) {
+          const revIndex = Math.min(...active);
+          segments.push([segmentStart, e.pos, revIndex]);
+        }
+        segmentStart = e.pos;
+        if (e.type === 'start') active.add(e.revIndex);
+        else active.delete(e.revIndex);
+      }
+    }
+
+    if (segments.length > 0) {
+      const pool = reviewedPad.apool();
+      for (let i = 0; i < LARGE_ADDITION_PALETTE_SIZE; i++) {
+        pool.putAttrib(['large_addition', String(i)]);
+      }
+      const builder = new Builder(finalText.length);
+      let pos = 0;
+      for (const [start, end, revIndex] of segments) {
+        if (start > pos) {
+          builder.keepText(finalText.slice(pos, start));
+        }
+        const colorIndex = revIndex % LARGE_ADDITION_PALETTE_SIZE;
+        builder.keepText(finalText.slice(start, end), [['large_addition', String(colorIndex)]], pool);
+        pos = end;
+      }
+      if (pos < finalText.length) {
+        builder.keepText(finalText.slice(pos));
+      }
+      await reviewedPad.appendRevision(builder.toString(), '');
+    }
+
+    const readOnlyId = await readOnlyManager.getReadOnlyId(reviewedPadId);
+    const backToPadPath = req.path.replace(/\/review\/?$/, '');
+    const reviewedPadBase = backToPadPath.replace(/\/[^/]+$/, '') + '/' + encodeURIComponent(readOnlyId);
+    const reviewedPadPath = `${reviewedPadBase}?showControls=false`;
+    res.send(eejs.require('ep_etherpad-lite/templates/review.html', {
+      req,
+      entrypoint,
+      settings: settings.getPublicSettings(),
+      reviewedPadPath,
+      backToPadPath,
+      largeAdditionItems,
+    }));
+  } catch (err: any) {
+    next(err);
+  }
+};
+
+const handleLiveReload = async (args: ArgsExpressType, padString: string, timeSliderString: string, indexString: any, reviewString: string) => {
   const chokidar = await import('chokidar')
   const watcher = chokidar.watch(path.join(settings.root, 'src', 'static', 'js'), {});
   let routeHandlers: { [key: string]: Function } = {};
@@ -137,16 +319,20 @@ const handleLiveReload = async (args: ArgsExpressType, padString: string, timeSl
     routeHandlers[path] = newHandler;
   };
   args.app.use((req: any, res: any, next: Function) => {
-    if (req.path.startsWith('/p/') && req.path.split('/').length == 3) {
-      req.params = {
-        pad: req.path.split('/')[2]
-      }
+    const pathParts = req.path.split('/');
+    if (req.path.startsWith('/p/') && pathParts.length === 3) {
+      req.params = { pad: pathParts[2] };
       routeHandlers['/p/:pad'](req, res);
-    } else if (req.path.startsWith('/p/') && req.path.split('/').length == 4) {
-      req.params = {
-        pad: req.path.split('/')[2]
+    } else if (req.path.startsWith('/p/') && pathParts.length === 4) {
+      req.params = { pad: pathParts[2] };
+      const subPage = pathParts[3];
+      if (subPage === 'timeslider' && routeHandlers['/p/:pad/timeslider']) {
+        routeHandlers['/p/:pad/timeslider'](req, res);
+      } else if (subPage === 'review' && routeHandlers['/p/:pad/review']) {
+        routeHandlers['/p/:pad/review'](req, res);
+      } else {
+        next();
       }
-      routeHandlers['/p/:pad/timeslider'](req, res);
     } else if (req.path == "/"){
       routeHandlers['/'](req, res);
     } else if (routeHandlers[req.path]) {
@@ -230,6 +416,13 @@ const handleLiveReload = async (args: ArgsExpressType, padString: string, timeSl
         res.send(content);
       })
     })
+    convertTypescriptWatched(reviewString, (output, hash) => {
+      setRouteHandler('/watch/review', (req: any, res: any) => {
+        res.header('Content-Type', 'application/javascript');
+        res.send(output)
+      })
+      setRouteHandler('/p/:pad/review', handleReviewPage('/watch/review?hash=' + hash));
+    })
   }
 
   watcher.on('change', path => {
@@ -297,7 +490,7 @@ exports.expressCreateServer = async (_hookName: string, args: ArgsExpressType, c
     settings,
   })
 
-
+  const reviewString = eejs.require('ep_etherpad-lite/templates/reviewBootstrap.js', { settings })
 
   const outdir = path.join(settings.root, 'var','js')
   // Create the outdir if it doesn't exist
@@ -308,14 +501,17 @@ exports.expressCreateServer = async (_hookName: string, args: ArgsExpressType, c
   let fileNamePad: string
   let fileNameTimeSlider: string
   let fileNameIndex: string
+  let fileNameReview: string
   if(process.env.NODE_ENV === "production"){
     const padSliderWrite = convertTypescript(padString)
     const timeSliderWrite = convertTypescript(timeSliderString)
     const indexWrite = convertTypescript(indexString)
+    const reviewWrite = convertTypescript(reviewString)
 
     fileNamePad = `padbootstrap-${padSliderWrite.hash}.min.js`
     fileNameTimeSlider = `timeSliderBootstrap-${timeSliderWrite.hash}.min.js`
     fileNameIndex = `indexBootstrap-${indexWrite.hash}.min.js`
+    fileNameReview = `reviewBootstrap-${reviewWrite.hash}.min.js`
 
     args.app.get("/"+fileNamePad, (_req, res) => {
       res.header('Content-Type', 'application/javascript');
@@ -330,6 +526,11 @@ exports.expressCreateServer = async (_hookName: string, args: ArgsExpressType, c
     args.app.get("/"+fileNameTimeSlider, (_req, res) => {
       res.header('Content-Type', 'application/javascript');
       res.send(timeSliderWrite.output)
+    })
+
+    args.app.get("/"+fileNameReview, (_req, res) => {
+      res.header('Content-Type', 'application/javascript');
+      res.send(reviewWrite.output)
     })
 
     // serve index.html or skin landing page under /
@@ -374,8 +575,10 @@ exports.expressCreateServer = async (_hookName: string, args: ArgsExpressType, c
         settings: settings.getPublicSettings()
       }));
     });
+
+    args.app.get('/p/:pad/review', handleReviewPage('../../' + fileNameReview));
   } else {
-    await handleLiveReload(args, padString, timeSliderString, indexString)
+    await handleLiveReload(args, padString, timeSliderString, indexString, reviewString)
   }
 
   // The client occasionally polls this endpoint to get an updated expiration for the express_sid

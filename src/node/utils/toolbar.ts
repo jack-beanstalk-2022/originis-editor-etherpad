@@ -236,6 +236,12 @@ module.exports = {
             class: 'buttonicon buttonicon-history',
         },
 
+        review: {
+            command: 'showReview',
+            localizationId: 'pad.toolbar.review.title',
+            class: 'buttonicon buttonicon-review',
+        },
+
         savedrevision: defaultButtonAttributes('savedRevision'),
         settings: defaultButtonAttributes('settings'),
         embed: defaultButtonAttributes('embed'),

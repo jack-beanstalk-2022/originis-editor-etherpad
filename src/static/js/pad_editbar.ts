@@ -404,6 +404,10 @@ exports.padeditbar = new class {
       document.location = `${document.location.pathname}/timeslider`;
     });
 
+    this.registerCommand('showReview', () => {
+      document.location = `${document.location.pathname}/review`;
+    });
+
     const aceAttributeCommand = (cmd, ace) => {
       ace.ace_toggleAttributeOnSelection(cmd);
     };

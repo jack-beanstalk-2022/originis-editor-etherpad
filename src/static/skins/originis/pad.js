@@ -9,6 +9,10 @@ window.customStart = () => {
 
   const pathSegments = window.location.pathname.split('/');
   const padName = pathSegments[pathSegments.length - 1];
+  // Do not add auto-created _reviewed pads to Recent Pads
+  if (padName.endsWith('_reviewed')) {
+    return;
+  }
   const recentPads = localStorage.getItem('recentPads');
   if (recentPads == null) {
     localStorage.setItem('recentPads', JSON.stringify([]));

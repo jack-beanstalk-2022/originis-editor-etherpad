@@ -68,6 +68,14 @@
 .buttonicon-history:before {
   content: "\e837";
 }
+.buttonicon-review:before {
+  content: " ";
+  width: 18px;
+  height: 18px;
+  -webkit-mask: url("../../img/review.svg") no-repeat center / contain;
+  mask: url("../../img/review.svg") no-repeat center / contain;
+  background-color: currentColor;
+}
 .buttonicon-chat:before {
   content: "\e82d";
 }

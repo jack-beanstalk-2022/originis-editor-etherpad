@@ -44,6 +44,7 @@ linestylefilter.ATTRIB_CLASSES = {
   italic: 'tag:i',
   underline: 'tag:u',
   strikethrough: 'tag:s',
+  large_addition: 'large-addition',
 };
 
 const lineAttributeMarker = 'lineAttribMarker';
@@ -88,6 +89,9 @@ linestylefilter.getLineStyleFilter = (lineLength, aline, textAndClassFunc, apool
         } else if (key === 'start') {
           // Needed to introduce the correct Ordered list item start number on import
           classes += ` start:${value}`;
+        } else if (key === 'large_addition') {
+          // Review page: color index 0, 1, 2... for per-revision highlighting
+          classes += ` large-addition-${value}`;
         } else if (linestylefilter.ATTRIB_CLASSES[key]) {
           classes += ` ${linestylefilter.ATTRIB_CLASSES[key]}`;
         } else {
