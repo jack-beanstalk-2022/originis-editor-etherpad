@@ -206,9 +206,20 @@ function setupReviewPortal() {
       let val = input.value.trim();
       if (!val) return;
 
-      // Handle full URLs
+      // Try to extract padname from URL
+      let url;
       try {
-        const url = new URL(val);
+        url = new URL(val);
+      } catch (err) {
+        // Handle URLs without protocol like site.com/p/mypad
+        if (val.includes('/p/')) {
+          try {
+            url = new URL(`https://${val}`);
+          } catch (e2) {}
+        }
+      }
+
+      if (url) {
         // If it's a pad URL like /p/padname, redirect to /p/padname/review
         const match = url.pathname.match(/\/p\/([^/]+)/);
         if (match) {
@@ -216,8 +227,6 @@ function setupReviewPortal() {
           window.location.href = `/p/${padId}/review`;
           return;
         }
-      } catch (err) {
-        // Not a full URL, treat as pad name
       }
 
       // Treat as pad name

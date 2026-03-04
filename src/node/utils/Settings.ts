@@ -449,7 +449,7 @@ const settings: SettingsType = {
       ['clearauthorship'],
     ],
     right: [
-      ['importexport', 'timeslider', 'review', 'savedrevision'],
+      ['importexport', 'timeslider', 'savedrevision'],
       ['settings', 'embed', 'home'],
       ['showusers'],
     ],
