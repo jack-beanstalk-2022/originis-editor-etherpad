@@ -374,7 +374,7 @@ const handleReviewPage = (entrypoint: string) => async (req: any, res: any, next
           }
         }
       }
-      const merged = mergeRanges(revRanges);
+      const merged = mergeRanges(revRanges).filter(([start, end]) => end - start >= 30);
       if (merged.length === 0) continue;
       rangesPerRev.push(merged);
       largeAdditionItems.push({
