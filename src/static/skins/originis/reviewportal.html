@@ -56,19 +56,10 @@
       width: 90%;
       margin: 40px auto;
     }
-    #inner {
+    #inner-review-url {
       position: relative;
       max-width: 100%;
       margin: 0 auto;
-    }
-    #label {
-      text-align: center;
-      margin-bottom: 32px;
-      display: block;
-      color: var(--color-foreground);
-      font-family: var(--font-display);
-      font-size: 28px;
-      font-weight: 600;
     }
     #go2Url {
       display: flex;
@@ -81,8 +72,8 @@
       border-radius: 12px;
       border: 1px solid var(--color-border);
       background: #fcfcfc;
-      padding: 16px 24px;
-      font-size: 18px;
+      padding: 12px 20px;
+      font-size: 16px;
       outline: none;
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
       font-family: var(--font-mono);
@@ -97,9 +88,9 @@
       color: #000;
       border: none;
       border-radius: 12px;
-      padding: 0 40px;
+      padding: 0 32px;
       font-weight: 700;
-      font-size: 18px;
+      font-size: 16px;
       cursor: pointer;
       transition: transform 0.2s ease, filter 0.2s ease;
       font-family: var(--font-mono);
@@ -162,7 +153,7 @@
         flex-direction: column;
       }
       .url-submit {
-        padding: 16px;
+        padding: 12px;
       }
       .mission-statement h2 {
         font-size: 28px;
@@ -192,10 +183,9 @@
 
     <div id="wrapper">
       <% e.begin_block("indexWrapper"); %>
-      <div id="inner">
+      <div id="inner-review-url">
         <form action="#" id="go2Url">
-          <label id="label" for="review-url">Pad name or URL</label>
-          <input type="url" id="review-url" name="url" autofocus placeholder="https://..." />
+          <input type="text" id="review-url" name="url" autofocus placeholder="pad name or url" />
           <button type="submit" class="url-submit">Open</button>
         </form>
       </div>

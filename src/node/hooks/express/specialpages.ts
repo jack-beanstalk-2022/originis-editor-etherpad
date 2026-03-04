@@ -402,11 +402,15 @@ const handleLiveReload = async (args: ArgsExpressType, padString: string, timeSl
         res.header('Content-Type', 'application/javascript');
         res.send(output)
       })
-      const indexTemplate = settings.skinName === 'originis'
-        ? 'ep_etherpad-lite/static/skins/originis/home.html'
-        : 'ep_etherpad-lite/templates/index.html';
-      setRouteHandler('/', (req: any, res: any) => {
+    const indexTemplate = settings.skinName === 'originis'
+      ? 'ep_etherpad-lite/static/skins/originis/home.html'
+      : 'ep_etherpad-lite/templates/index.html';
+    const reviewportalTemplate = 'ep_etherpad-lite/static/skins/originis/reviewportal.html';
+    setRouteHandler('/', (req: any, res: any) => {
         res.send(eejs.require(indexTemplate, {req, entrypoint: '/watch/index?hash=' + hash, settings}));
+      })
+    setRouteHandler('/reviewportal', (req: any, res: any) => {
+        res.send(eejs.require(reviewportalTemplate, {req, entrypoint: '/watch/index?hash=' + hash, settings}));
       })
     })
 
@@ -594,6 +598,9 @@ exports.expressCreateServer = async (_hookName: string, args: ArgsExpressType, c
       res.send(eejs.require(indexTemplate, {req, settings, entrypoint: "./"+fileNameIndex}));
     });
 
+    args.app.get('/reviewportal', (req: any, res: any) => {
+      res.send(eejs.require('ep_etherpad-lite/static/skins/originis/reviewportal.html', {req, settings, entrypoint: "./"+fileNameIndex}));
+    });
 
     // serve pad.html under /p
     args.app.get('/p/:pad', (req: any, res: any, next: Function) => {
