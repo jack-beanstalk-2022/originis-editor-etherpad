@@ -165,6 +165,26 @@ const getInsertedStringsFromChangeset = (changeset: string): string[] => {
   return result;
 };
 
+/**
+ * Returns text removed by each '-' op in the changeset (from oldText in order).
+ */
+const getDeletedStringsFromChangeset = (changeset: string, oldText: string): string[] => {
+  const {ops, oldLen: csOldLen} = unpack(changeset);
+  if (oldText.length !== csOldLen) return [];
+  const result: string[] = [];
+  let strPos = 0;
+  for (const op of deserializeOps(ops)) {
+    if (op.opcode === '-') {
+      result.push(oldText.slice(strPos, strPos + op.chars));
+      strPos += op.chars;
+    } else if (op.opcode === '=') {
+      strPos += op.chars;
+    }
+    // '+' does not consume oldText
+  }
+  return result;
+};
+
 /** Item for the review page "large additions" list (rev, author, time, addedChars). */
 type ReviewItem = { rev: number; author: string; timestamp: number; addedChars: number; formattedTime: string };
 
@@ -221,9 +241,34 @@ const handleReviewPage = (entrypoint: string) => async (req: any, res: any, next
       const changeset = revData.changeset;
       const addedChars = getInsertionSize(changeset);
       if (addedChars <= MIN_ADDITION_CHARS) continue;
+      const insertedBlocks = getInsertedStringsFromChangeset(changeset);
+
+      let skipAsReinsertion = false;
+      const startPrev = Math.max(1, rev - 10);
+      for (let prevRev = rev - 1; prevRev >= startPrev; prevRev--) {
+        const prevData = await pad.getRevision(prevRev);
+        const textBeforePrev = (await pad.getInternalRevisionAText(prevRev - 1)).text;
+        const deletedBlocks = getDeletedStringsFromChangeset(prevData.changeset, textBeforePrev);
+        const allInsertedWereDeleted = insertedBlocks.every((block) => {
+          if (block.trim().length === 0) return true;
+          return deletedBlocks.some((d) => d.includes(block));
+        });
+        if (allInsertedWereDeleted) {
+          skipAsReinsertion = true;
+          break;
+        }
+      }
+      if (skipAsReinsertion) continue; // skip: this addition was re-adding recently deleted content
+
+      const textBeforeRev = (await pad.getInternalRevisionAText(rev - 1)).text;
+      const allBlocksAlreadyExist = insertedBlocks.every((block) => {
+        if (block.trim().length === 0) return true;
+        const substrings = block.split('\n').filter((s) => s.trim().length > 0);
+        return substrings.every((needle) => textBeforeRev.includes(needle));
+      });
+      if (allBlocksAlreadyExist) continue;
       const timestamp = revData.meta?.timestamp ?? 0;
       const revRanges: TextRange[] = [];
-      const insertedBlocks = getInsertedStringsFromChangeset(changeset);
       for (const block of insertedBlocks) {
         if (block.trim().length === 0) continue;
         const substrings = block.split('\n').filter((s) => s.trim().length > 0);
