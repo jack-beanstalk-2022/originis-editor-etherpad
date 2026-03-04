@@ -15,10 +15,7 @@ function setupAuthDialogs() {
   const signupOpenBtn = document.getElementById('signup-open-btn');
   const signupCloseBtn = document.getElementById('signup-close-btn');
   const signupForm = document.getElementById('signup-form');
-  const loginDialog = document.getElementById('login-dialog');
-  const loginBtn = document.getElementById('login-btn');
-  const loginCloseBtn = document.getElementById('login-close-btn');
-  const loginForm = document.getElementById('login-form');
+  const homeLoginForm = document.getElementById('home-login-form');
   if (signupOpenBtn && signupDialog) {
     signupOpenBtn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -33,35 +30,23 @@ function setupAuthDialogs() {
       if (e.target === signupDialog) signupDialog.close();
     });
   }
-  if (loginBtn && loginDialog) {
-    loginBtn.addEventListener('click', () => loginDialog.showModal());
-  }
-  if (loginCloseBtn && loginDialog) {
-    loginCloseBtn.addEventListener('click', () => loginDialog.close());
-  }
-  if (loginDialog) {
-    loginDialog.addEventListener('click', (e) => {
-      if (e.target === loginDialog) loginDialog.close();
-    });
-  }
-
-  function showError(dialogEl, message) {
-    if (!dialogEl) return;
-    let errEl = dialogEl.querySelector('.auth-error');
+  function showError(formContainer, message) {
+    if (!formContainer) return;
+    let errEl = formContainer.querySelector('.auth-error');
     if (!errEl) {
       errEl = document.createElement('p');
       errEl.className = 'auth-error';
       errEl.style.color = '#c00';
       errEl.style.marginTop = '8px';
       errEl.style.fontSize = '13px';
-      dialogEl.querySelector('form')?.appendChild(errEl);
+      formContainer.querySelector('form')?.appendChild(errEl);
     }
     errEl.textContent = message;
     errEl.style.display = 'block';
   }
 
-  function clearError(dialogEl) {
-    const errEl = dialogEl?.querySelector('.auth-error');
+  function clearError(formContainer) {
+    const errEl = formContainer?.querySelector('.auth-error');
     if (errEl) errEl.style.display = 'none';
   }
 
@@ -124,16 +109,17 @@ function setupAuthDialogs() {
     });
   }
 
-  if (loginForm && typeof firebase !== 'undefined') {
-    loginForm.addEventListener('submit', async (e) => {
+  if (homeLoginForm && typeof firebase !== 'undefined') {
+    const homeLoginSection = document.getElementById('home-login-section');
+    homeLoginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      clearError(loginDialog);
-      const emailEl = document.getElementById('login-email');
-      const passwordEl = document.getElementById('login-password');
+      clearError(homeLoginSection);
+      const emailEl = document.getElementById('home-login-email');
+      const passwordEl = document.getElementById('home-login-password');
       const email = emailEl?.value?.trim();
       const password = passwordEl?.value;
       if (!email || !password) return;
-      const submitBtn = loginForm.querySelector('.login-submit');
+      const submitBtn = homeLoginForm.querySelector('.login-submit');
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.textContent = 'Logging in…';
@@ -141,17 +127,16 @@ function setupAuthDialogs() {
       try {
         const config = window.FIREBASE_CONFIG || {};
         if (!config.apiKey || config.apiKey === 'YOUR_API_KEY') {
-          showError(loginDialog, 'Firebase is not configured. Set FIREBASE_CONFIG in the page.');
+          showError(homeLoginSection, 'Firebase is not configured. Set FIREBASE_CONFIG in the page.');
           return;
         }
         if (!firebase.apps.length) firebase.initializeApp(config);
         const userCred = await firebase.auth().signInWithEmailAndPassword(email, password);
         const idToken = await userCred.user.getIdToken();
         await syncSessionWithBackend(idToken);
-        loginDialog.close();
         window.location.reload();
       } catch (err) {
-        showError(loginDialog, err.message || 'Log in failed');
+        showError(homeLoginSection, err.message || 'Log in failed');
       } finally {
         if (submitBtn) {
           submitBtn.disabled = false;
@@ -166,6 +151,7 @@ function updateNavAuthState(user) {
   const authButtons = document.getElementById('nav-auth-buttons');
   const userSection = document.getElementById('nav-user-section');
   const userEmailEl = document.getElementById('nav-user-email');
+  const homeLoginSection = document.getElementById('home-login-section');
   const padDatalist = document.querySelector('.pad-datalist');
   const createPadWrapper = document.getElementById('wrapper');
   if (!authButtons || !userSection || !userEmailEl) return;
@@ -174,6 +160,7 @@ function updateNavAuthState(user) {
     userEmailEl.textContent = user.email;
     userEmailEl.title = user.email;
     userSection.style.display = 'flex';
+    if (homeLoginSection) homeLoginSection.style.display = 'none';
     if (padDatalist) padDatalist.style.display = 'block';
     if (createPadWrapper) createPadWrapper.style.display = '';
   } else {
@@ -181,6 +168,7 @@ function updateNavAuthState(user) {
     userSection.style.display = 'none';
     userEmailEl.textContent = '';
     userEmailEl.title = '';
+    if (homeLoginSection) homeLoginSection.style.display = 'block';
     if (padDatalist) padDatalist.style.display = 'none';
     if (createPadWrapper) createPadWrapper.style.display = 'none';
   }
