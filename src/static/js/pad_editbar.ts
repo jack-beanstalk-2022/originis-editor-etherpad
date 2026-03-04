@@ -283,6 +283,9 @@ exports.padeditbar = new class {
     // reset style
     $('.toolbar').removeClass('cropped');
     $('body').removeClass('mobile-layout');
+
+    if (new URLSearchParams(window.location.search).get('mobile') === 'false') return;
+
     const menuLeft = $('.toolbar .menu_left')[0];
 
     // this is approximate, we cannot measure it because on mobile

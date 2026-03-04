@@ -560,8 +560,8 @@ const pad = {
       this.changeViewOption('padFontFamily', 'RobotoMono');
     }
     // if the globalUserName value is set we need to tell the server and
-    // the client about the new authorname (skip when author name is locked, e.g. Firebase auth)
-    if (settings.globalUserName !== false && !clientVars.authorNameLocked) {
+    // the client about the new authorname
+    if (settings.globalUserName !== false) {
       this.notifyChangeName(settings.globalUserName); // Notifies the server
       this.myUserInfo.name = settings.globalUserName;
       $('#myusernameedit').val(settings.globalUserName); // Updates the current users UI

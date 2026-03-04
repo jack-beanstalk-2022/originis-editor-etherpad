@@ -25,6 +25,7 @@
     }
     .review-large-additions {
       margin-top: 1rem;
+      padding: 1rem;
     }
     .review-large-additions h3 {
       font-size: 1rem;
@@ -56,20 +57,31 @@
     }
     #padbody.review .toolbar {
       display: flex;
+      align-items: center;
+    }
+    #padbody.review .menu_right li[data-key="home"] {
+      margin-right: 0.5rem;
+    }
+    #padbody.review .review-toolbar-doc-name {
+      flex: 1;
+      margin-right: 0.75rem;
+      margin-left: 0.75rem;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   </style>
 </head>
 <body id="padbody" class="review limwidth">
   <div id="editbar" class="toolbar">
     <div id="toolbar-overlay"></div>
-    <ul class="menu_left" role="toolbar">
-      <li>
-        <a href="<%= typeof backToPadPath !== 'undefined' ? backToPadPath : '#' %>" title="Back to pad" data-l10n-id="review.backToPad" data-l10n-attrs="title"><strong>&lt;</strong></a>
-      </li>
-    </ul>
+    <% if (typeof padName !== 'undefined' && padName) { %>
+    <span class="review-toolbar-doc-name"><%= padName %></span>
+    <% } %>
     <ul class="menu_right" role="toolbar">
       <li data-type="button" data-key="home">
-        <a href="<%= (typeof backToPadPath !== 'undefined' && backToPadPath ? backToPadPath.replace(/\/p\/[^/]*$/, '') : '') || '/' %>" data-l10n-id="pad.toolbar.home.title" data-l10n-attrs="title">
+        <a href="<%= (typeof backToPadPath !== 'undefined' && backToPadPath ? backToPadPath.replace(/\/p\/[^/]*$/, '') : '') || '/reviewportal' %>" data-l10n-id="pad.toolbar.home.title" data-l10n-attrs="title">
           <span class="buttonicon buttonicon-home"></span>
         </a>
       </li>
