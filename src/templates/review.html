@@ -18,43 +18,183 @@
       width: 100%;
       min-height: 360px;
       height: 70vh;
-      border: 1px solid var(--border-color, #ccc);
-      border-radius: 4px;
-      margin-bottom: 1rem;
+      border: 1px solid var(--border-color, #e0e0e0);
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
       background: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .review-section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #2d2d2d;
+    }
+    .review-section-header svg {
+      flex-shrink: 0;
+    }
+    .review-author-stats {
+      margin-top: 1.5rem;
+    }
+    .review-author-stats .review-section-icon-authors {
+      color: #c9a227;
+    }
+    .review-author-stats-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .review-author-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.75rem;
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid black;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .review-author-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #e8e8e8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .review-author-avatar svg {
+      width: 22px;
+      height: 22px;
+      color: #6b6b6b;
+    }
+    .review-author-main {
+      flex: 1;
+      min-width: 0;
+    }
+    .review-author-name {
+      font-weight: 500;
+      color: #2d2d2d;
+      margin-bottom: 0.35rem;
+    }
+    .review-author-progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .review-author-progress-track {
+      flex: 1;
+      height: 8px;
+      background: #e8e8e8;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .review-author-progress-fill {
+      height: 100%;
+      background: #c9a227;
+      border-radius: 4px;
+      transition: width 0.2s ease;
+    }
+    .review-author-pct {
+      font-weight: 500;
+      color: #2d2d2d;
+      font-variant-numeric: tabular-nums;
+      min-width: 2.5rem;
+    }
+    .review-author-duration {
+      flex-shrink: 0;
+      min-width: 7.5rem;
+      text-align: right;
+    }
+    .review-author-duration-label {
+      font-size: 0.75rem;
+      color: #888;
+      display: block;
+    }
+    .review-author-duration-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #2d2d2d;
+      font-variant-numeric: tabular-nums;
     }
     .review-large-additions {
-      margin-top: 1rem;
-      padding: 1rem;
+      margin-top: 1.5rem;
     }
-    .review-large-additions h3 {
-      font-size: 1rem;
-      margin: 0 0 0.5rem 0;
+    .review-large-additions .review-section-icon-revisions {
+      color: #c0392b;
     }
     .review-revisions-list {
       list-style: none;
       padding: 0;
       margin: 0;
     }
-    .review-revisions-list li {
-      margin: 0.25rem 0;
+    .review-revision-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.75rem;
+      border-radius: 10px;
+      border: 1px solid black;
+      text-decoration: none;
+      color: inherit;
+      transition: opacity 0.15s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
-    /* Same palette as iframe .large-addition-N for list item color coding */
-    .review-rev-0 { background-color: #ffcccc; }
-    .review-rev-1 { background-color: #ccffcc; }
-    .review-rev-2 { background-color: #ccccff; }
-    .review-rev-3 { background-color: #ffffcc; }
-    .review-rev-4 { background-color: #ffccff; }
-    .review-rev-5 { background-color: #ccffff; }
-    .review-rev-6 { background-color: #ffddcc; }
-    .review-rev-7 { background-color: #ddccff; }
-    .review-rev-8 { background-color: #ccffdd; }
-    .review-rev-9 { background-color: #ffccdd; }
-    .review-revisions-list li a {
-      padding: 0.15rem 0.4rem;
-      border-radius: 3px;
-      display: inline-block;
+    .review-revision-card:hover {
+      opacity: 0.92;
     }
+    .review-revision-card.review-rev-type-creation {
+      background: #FFF8E6;
+    }
+    .review-revision-card.review-rev-type-major {
+      background: #E6F0F8;
+    }
+    .review-revision-card.review-rev-type-paste {
+      background: #FEEAEB;
+    }
+    /* Same palette as iframe large-addition highlighting (iframe_editor.css) */
+    .review-revision-card.review-rev-color-0 { background: #ffcccc; }
+    .review-revision-card.review-rev-color-1 { background: #ccffcc; }
+    .review-revision-card.review-rev-color-2 { background: #ccccff; }
+    .review-revision-card.review-rev-color-3 { background: #ffffcc; }
+    .review-revision-card.review-rev-color-4 { background: #ffccff; }
+    .review-revision-card.review-rev-color-5 { background: #ccffff; }
+    .review-revision-card.review-rev-color-6 { background: #ffddcc; }
+    .review-revision-card.review-rev-color-7 { background: #ddccff; }
+    .review-revision-card.review-rev-color-8 { background: #ccffdd; }
+    .review-revision-card.review-rev-color-9 { background: #ffccdd; }
+    .review-rev-badge {
+      flex-shrink: 0;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #444;
+    }
+    .review-rev-body {
+      flex: 1;
+      min-width: 0;
+    }
+    .review-rev-author {
+      font-weight: 500;
+      color: #2d2d2d;
+      margin-bottom: 0.25rem;
+    }
+    .review-rev-desc {
+      font-size: 0.9rem;
+      color: #444;
+      line-height: 1.4;
+    }
+    .review-rev-desc strong {
+      font-weight: 700;
+    }
+    .review-rev-type-creation .review-rev-desc strong { color: #b8860b; }
+    .review-rev-type-major .review-rev-desc strong { color: #2471a3; }
+    .review-rev-type-paste .review-rev-desc strong { color: #a93226; }
     #padbody.review .toolbar {
       display: flex;
       align-items: center;
@@ -62,49 +202,37 @@
     #padbody.review .menu_right li[data-key="home"] {
       margin-right: 0.5rem;
     }
-    #padbody.review .review-toolbar-doc-name {
+    #padbody.review .review-toolbar-doc-name-wrap {
       flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
       margin-right: 0.75rem;
       margin-left: 0.75rem;
+      min-width: 0;
+    }
+    #padbody.review .review-toolbar-doc-name-icon {
+      flex-shrink: 0;
+      color: inherit;
+    }
+    #padbody.review .review-toolbar-doc-name {
       font-weight: 600;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .review-author-stats {
-      margin-top: 1rem;
-      padding: 1rem;
-      border: 1px solid var(--border-color, #ccc);
-      border-radius: 4px;
-      background: var(--bg-secondary, #f8f8f8);
-    }
-    .review-author-stats h3 {
-      font-size: 1rem;
-      margin: 0 0 0.5rem 0;
-    }
-    .review-author-stats-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    .review-author-stats-list li {
+    #padbody.review {
       display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin: 0.2rem 0;
-      gap: 0.5rem;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
     }
-    .review-author-stats-list .author-name {
-      font-weight: 500;
-    }
-    .review-author-stats-list .author-pct {
-      color: var(--text-muted, #666);
-      font-variant-numeric: tabular-nums;
-    }
-    .review-author-stats-list .author-editing-time {
-      color: var(--text-muted, #666);
-      font-variant-numeric: tabular-nums;
-      margin-left: 0.5rem;
+    #padbody.review #review-container {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding-left: 1.25rem;
+      padding-right: 1.25rem;
     }
   </style>
 </head>
@@ -112,7 +240,10 @@
   <div id="editbar" class="toolbar">
     <div id="toolbar-overlay"></div>
     <% if (typeof padName !== 'undefined' && padName) { %>
-    <span class="review-toolbar-doc-name"><%= padName %></span>
+    <span class="review-toolbar-doc-name-wrap">
+      <svg class="review-toolbar-doc-name-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+      <span class="review-toolbar-doc-name"><%= padName %></span>
+    </span>
     <% } %>
     <ul class="menu_right" role="toolbar">
       <li data-type="button" data-key="home">
@@ -129,20 +260,60 @@
     <% } %>
     <% if (typeof authorStats !== 'undefined' && Array.isArray(authorStats) && authorStats.length > 0) { %>
     <div class="review-author-stats">
-      <h3 data-l10n-id="review.authorStatsTitle">Contributions by author</h3>
+      <h3 class="review-section-header" data-l10n-id="review.authorStatsTitle">
+        <svg class="review-section-icon-authors" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        Contributions by author
+      </h3>
       <ul class="review-author-stats-list">
         <% authorStats.forEach(function(stat) { %>
-        <li><span class="author-name"><%= stat.authorName %></span><span><span class="author-pct"><%= stat.percentage %>%</span><span class="author-editing-time"><%= stat.editingTimeFormatted %></span></span></li>
+        <li class="review-author-card">
+          <div class="review-author-avatar" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          </div>
+          <div class="review-author-main">
+            <div class="review-author-name"><%= stat.authorName %></div>
+            <div class="review-author-progress-wrap">
+              <div class="review-author-progress-track">
+                <div class="review-author-progress-fill" style="width: <%= stat.percentage %>%"></div>
+              </div>
+              <span class="review-author-pct"><%= stat.percentage %>%</span>
+            </div>
+          </div>
+          <div class="review-author-duration">
+            <span class="review-author-duration-label" data-l10n-id="review.editingTime">Editing time</span>
+            <span class="review-author-duration-value"><%= stat.editingTimeFormatted %></span>
+          </div>
+        </li>
         <% }); %>
       </ul>
     </div>
     <% } %>
     <% if (typeof largeAdditionItems !== 'undefined' && Array.isArray(largeAdditionItems) && largeAdditionItems.length > 0) { %>
     <div class="review-large-additions">
-      <h3 data-l10n-id="review.largeAdditionsTitle">Suspicious Revisions</h3>
+      <h3 class="review-section-header" data-l10n-id="review.largeAdditionsTitle">
+        <svg class="review-section-icon-revisions" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z"/></svg>
+        Suspicious Revisions
+      </h3>
       <ul class="review-revisions-list">
-        <% largeAdditionItems.forEach(function(item, index) { %>
-        <li><a class="review-rev-<%= index % 10 %>" href="<%= typeof backToPadPath !== 'undefined' ? backToPadPath : '' %>/timeslider#<%= item.rev %>">Rev <%= item.rev %>: <%= item.authorName %> pasted / imported <%= item.addedChars %> chars on <%= item.formattedTime %></a></li>
+        <% largeAdditionItems.slice().forEach(function(item, index) {
+          var rev = item.rev;
+          var typeClass = rev === 1 ? 'review-rev-type-creation' : (rev === 2 ? 'review-rev-type-major' : 'review-rev-type-paste');
+          var desc = rev === 1
+            ? 'Document initialized with base template on ' + item.formattedTime
+            : (rev === 2
+              ? 'Modified <strong>' + item.addedChars + ' characters</strong> on ' + item.formattedTime
+              : 'Pasted / imported <strong>' + item.addedChars + ' characters</strong> on ' + item.formattedTime);
+          var colorIndex = (largeAdditionItems.length - 1 - index) % 10;
+        %>
+        <li>
+          <a class="review-revision-card <%= typeClass %> review-rev-color-<%= colorIndex %>" href="<%= typeof backToPadPath !== 'undefined' ? backToPadPath : '' %>/timeslider#<%= item.rev %>">
+            <span class="review-rev-badge">Rev <%= item.rev %></span>
+            <div class="review-rev-body">
+              <div class="review-rev-author"><%= item.authorName %></div>
+              <div class="review-rev-desc"><%- desc %></div>
+            </div>
+          </a>
+        </li>
         <% }); %>
       </ul>
     </div>
