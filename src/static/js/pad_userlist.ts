@@ -359,15 +359,19 @@ const paduserlist = (() => {
       $('#otheruserstable tr').remove();
 
       $('#myusernameedit').addClass('myusernameedithoverable');
-      setUpEditable($('#myusernameedit'), () => myUserInfo.name || '', (newValue) => {
-        myUserInfo.name = newValue;
-        pad.notifyChangeName(newValue);
-        // wrap with setTimeout to do later because we get
-        // a double "blur" fire in IE...
-        window.setTimeout(() => {
-          self.renderMyUserInfo();
-        }, 0);
-      });
+      if (clientVars.authorNameLocked) {
+        $('#myusernameedit').attr('disabled', true);
+      } else {
+        setUpEditable($('#myusernameedit'), () => myUserInfo.name || '', (newValue) => {
+          myUserInfo.name = newValue;
+          pad.notifyChangeName(newValue);
+          // wrap with setTimeout to do later because we get
+          // a double "blur" fire in IE...
+          window.setTimeout(() => {
+            self.renderMyUserInfo();
+          }, 0);
+        });
+      }
 
       // color picker
       $('#myswatchbox').on('click', showColorPicker);

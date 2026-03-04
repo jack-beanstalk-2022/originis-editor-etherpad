@@ -12,6 +12,7 @@ const webaccess = require('./webaccess');
 import readOnlyManager from '../../db/ReadOnlyManager';
 const plugins = require('../../../static/js/pluginfw/plugin_defs');
 const padManager = require('../../db/PadManager');
+const authorManager = require('../../db/AuthorManager');
 import {deserializeOps, unpack} from '../../../static/js/Changeset';
 import {Builder} from '../../../static/js/Builder';
 
@@ -185,8 +186,8 @@ const getDeletedStringsFromChangeset = (changeset: string, oldText: string): str
   return result;
 };
 
-/** Item for the review page "large additions" list (rev, author, time, addedChars). */
-type ReviewItem = { rev: number; author: string; timestamp: number; addedChars: number; formattedTime: string };
+/** Item for the review page "large additions" list (rev, author id, authorName for display, time, addedChars). */
+type ReviewItem = { rev: number; author: string; authorName: string; timestamp: number; addedChars: number; formattedTime: string };
 
 const formatReviewTime = (ts: number): string => {
   if (!ts) return '';
@@ -286,11 +287,18 @@ const handleReviewPage = (entrypoint: string) => async (req: any, res: any, next
       largeAdditionItems.push({
         rev,
         author: revData.meta?.author ?? '',
+        authorName: '', // resolved below
         timestamp,
         addedChars,
         formattedTime: formatReviewTime(timestamp),
       });
     }
+
+    // Resolve author IDs to display names for the review list.
+    await Promise.all(largeAdditionItems.map(async (item) => {
+      const name = item.author ? await authorManager.getAuthorName(item.author) : null;
+      item.authorName = name || 'anonymous';
+    }));
 
     /** Non-overlapping segments (start, end, colorIndex). Overlaps resolved by lowest colorIndex. */
     const segments: [number, number, number][] = [];

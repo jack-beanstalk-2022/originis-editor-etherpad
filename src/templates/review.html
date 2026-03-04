@@ -85,7 +85,7 @@
       <h3 data-l10n-id="review.largeAdditionsTitle">Suspicious Revisions</h3>
       <ul class="review-revisions-list">
         <% largeAdditionItems.forEach(function(item, index) { %>
-        <li><a class="review-rev-<%= index % 10 %>" href="<%= typeof backToPadPath !== 'undefined' ? backToPadPath : '' %>/timeslider#<%= item.rev %>">Rev <%= item.rev %>: <%= item.author || 'anonymous' %> pasted / imported <%= item.addedChars %> chars on <%= item.formattedTime %></a></li>
+        <li><a class="review-rev-<%= index % 10 %>" href="<%= typeof backToPadPath !== 'undefined' ? backToPadPath : '' %>/timeslider#<%= item.rev %>">Rev <%= item.rev %>: <%= item.authorName %> pasted / imported <%= item.addedChars %> chars on <%= item.formattedTime %></a></li>
         <% }); %>
       </ul>
     </div>

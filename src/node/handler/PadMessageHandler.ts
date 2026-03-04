@@ -578,7 +578,7 @@ const handleSuggestUserName = (socket:any, message: ClientSuggestUserName) => {
  */
 const handleUserInfoUpdate = async (socket:any, {data: {userInfo: {name, colorId}}}: UserNewInfoMessage) => {
   if (colorId == null) throw new Error('missing colorId');
-  if (!name) name = null;
+  let nameToSet = name || null;
   const session = sessioninfos[socket.id];
   if (!session || !session.author || !session.padId) throw new Error('session not ready');
   const author = session.author;
@@ -586,10 +586,16 @@ const handleUserInfoUpdate = async (socket:any, {data: {userInfo: {name, colorId
     throw new Error(`malformed color: ${colorId}`);
   }
 
+  // When user is logged in via Firebase, lock author name to their email (ignore client-supplied name).
+  const {session: {user} = {}} = socket.client.request as SocketClientRequest;
+  if (user?.email) {
+    nameToSet = user.email;
+  }
+
   // Tell the authorManager about the new attributes
   const p = Promise.all([
     authorManager.setAuthorColorId(author, colorId),
-    authorManager.setAuthorName(author, name),
+    nameToSet && authorManager.setAuthorName(author, nameToSet),
   ]);
 
   const padId = session.padId;
@@ -599,7 +605,7 @@ const handleUserInfoUpdate = async (socket:any, {data: {userInfo: {name, colorId
     data: {
       // The Client doesn't know about USERINFO_UPDATE, use USER_NEWINFO
       type: 'USER_NEWINFO',
-      userInfo: {userId: author, name, colorId},
+      userInfo: {userId: author, name: nameToSet, colorId},
     },
   };
 
@@ -851,7 +857,12 @@ const handleClientReady = async (socket:any, message: ClientReadyMessage) => {
 
   await hooks.aCallAll('clientReady', message); // Deprecated due to awkward context.
 
+  const {session: {user} = {}} = socket.client.request as SocketClientRequest;
   let {colorId: authorColorId, name: authorName} = message.userInfo || {};
+  // When user is logged in via Firebase, lock author name to their email.
+  if (user?.email) {
+    authorName = user.email;
+  }
   if (authorColorId && !/^#(?:[0-9A-F]{3}){1,2}$/i.test(authorColorId as string)) {
     messageLogger.warn(`Ignoring invalid colorId in CLIENT_READY message: ${authorColorId}`);
     // @ts-ignore
@@ -908,7 +919,6 @@ const handleClientReady = async (socket:any, message: ClientReadyMessage) => {
     }
   }
 
-  const {session: {user} = {}} = socket.client.request as SocketClientRequest;
   /* eslint-disable prefer-template -- it doesn't support breaking across multiple lines */
   accessLogger.info(`[${pad.head > 0 ? 'ENTER' : 'CREATE'}]` +
                     ` pad:${sessionInfo.padId}` +
@@ -1064,6 +1074,10 @@ const handleClientReady = async (socket:any, message: ClientReadyMessage) => {
     // Add a username to the clientVars if one avaiable
     if (authorName != null) {
       clientVars.userName = authorName;
+    }
+    // When user is logged in via Firebase, lock author name so the UI disables editing.
+    if (user?.email) {
+      clientVars.authorNameLocked = true;
     }
 
     // call the clientVars-hook so plugins can modify them before they get sent to the client
