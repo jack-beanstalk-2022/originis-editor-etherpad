@@ -349,7 +349,7 @@ const handleReviewPage = (entrypoint: string) => async (req: any, res: any, next
     const readOnlyId = await readOnlyManager.getReadOnlyId(reviewedPadId);
     const backToPadPath = req.path.replace(/\/review\/?$/, '');
     const reviewedPadBase = backToPadPath.replace(/\/[^/]+$/, '') + '/' + encodeURIComponent(readOnlyId);
-    const reviewedPadPath = `${reviewedPadBase}?showControls=false`;
+    const reviewedPadPath = `${reviewedPadBase}?showControls=false&showChat=false&showLineNumbers=false&useMonospaceFont=false&mobile=false`;
     res.send(eejs.require('ep_etherpad-lite/templates/review.html', {
       req,
       entrypoint,
@@ -357,6 +357,7 @@ const handleReviewPage = (entrypoint: string) => async (req: any, res: any, next
       reviewedPadPath,
       backToPadPath,
       largeAdditionItems,
+      padName: padId,
     }));
   } catch (err: any) {
     next(err);
