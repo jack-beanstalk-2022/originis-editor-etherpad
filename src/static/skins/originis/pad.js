@@ -1,6 +1,6 @@
 'use strict';
 
-const MAX_PADS_IN_HISTORY = 3;
+const MAX_PADS_IN_HISTORY = 15;
 
 window.customStart = () => {
   $('#pad_title').show();
@@ -11,6 +11,10 @@ window.customStart = () => {
   const padName = pathSegments[pathSegments.length - 1];
   // Do not add auto-created _reviewed pads to Recent Pads
   if (padName.endsWith('_reviewed')) {
+    return;
+  }
+  // Do not add read-only pad IDs (r.xxxxx) to Recent Pads
+  if (padName.startsWith('r.')) {
     return;
   }
   const recentPads = localStorage.getItem('recentPads');
