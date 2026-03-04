@@ -196,9 +196,40 @@ function setupAuthStateListener() {
   }
 }
 
+function setupReviewPortal() {
+  const go2Url = document.getElementById('go2Url');
+  if (go2Url) {
+    go2Url.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('review-url');
+      if (!input) return;
+      let val = input.value.trim();
+      if (!val) return;
+
+      // Handle full URLs
+      try {
+        const url = new URL(val);
+        // If it's a pad URL like /p/padname, redirect to /p/padname/review
+        const match = url.pathname.match(/\/p\/([^/]+)/);
+        if (match) {
+          const padId = match[1];
+          window.location.href = `/p/${padId}/review`;
+          return;
+        }
+      } catch (err) {
+        // Not a full URL, treat as pad name
+      }
+
+      // Treat as pad name
+      window.location.href = `/p/${encodeURIComponent(val)}/review`;
+    });
+  }
+}
+
 window.customStart = () => {
   setupAuthDialogs();
   setupAuthStateListener();
+  setupReviewPortal();
   // Hide Recent Pads and create-pad section until auth state is known; show only when logged in (see updateNavAuthState)
   const padDatalist = document.querySelector('.pad-datalist');
   if (padDatalist) padDatalist.style.display = 'none';
