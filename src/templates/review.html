@@ -71,6 +71,41 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+    .review-author-stats {
+      margin-top: 1rem;
+      padding: 1rem;
+      border: 1px solid var(--border-color, #ccc);
+      border-radius: 4px;
+      background: var(--bg-secondary, #f8f8f8);
+    }
+    .review-author-stats h3 {
+      font-size: 1rem;
+      margin: 0 0 0.5rem 0;
+    }
+    .review-author-stats-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .review-author-stats-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin: 0.2rem 0;
+      gap: 0.5rem;
+    }
+    .review-author-stats-list .author-name {
+      font-weight: 500;
+    }
+    .review-author-stats-list .author-pct {
+      color: var(--text-muted, #666);
+      font-variant-numeric: tabular-nums;
+    }
+    .review-author-stats-list .author-editing-time {
+      color: var(--text-muted, #666);
+      font-variant-numeric: tabular-nums;
+      margin-left: 0.5rem;
+    }
   </style>
 </head>
 <body id="padbody" class="review limwidth">
@@ -91,6 +126,16 @@
   <div id="review-container">
     <% if (typeof reviewedPadPath !== 'undefined' && reviewedPadPath) { %>
     <iframe id="review-pad-iframe" src="<%= reviewedPadPath %>" class="review-pad-iframe" title="Reviewed pad"></iframe>
+    <% } %>
+    <% if (typeof authorStats !== 'undefined' && Array.isArray(authorStats) && authorStats.length > 0) { %>
+    <div class="review-author-stats">
+      <h3 data-l10n-id="review.authorStatsTitle">Contributions by author</h3>
+      <ul class="review-author-stats-list">
+        <% authorStats.forEach(function(stat) { %>
+        <li><span class="author-name"><%= stat.authorName %></span><span><span class="author-pct"><%= stat.percentage %>%</span><span class="author-editing-time"><%= stat.editingTimeFormatted %></span></span></li>
+        <% }); %>
+      </ul>
+    </div>
     <% } %>
     <% if (typeof largeAdditionItems !== 'undefined' && Array.isArray(largeAdditionItems) && largeAdditionItems.length > 0) { %>
     <div class="review-large-additions">

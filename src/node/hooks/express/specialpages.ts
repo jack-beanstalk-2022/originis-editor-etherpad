@@ -189,6 +189,49 @@ const getDeletedStringsFromChangeset = (changeset: string, oldText: string): str
 /** Item for the review page "large additions" list (rev, author id, authorName for display, time, addedChars). */
 type ReviewItem = { rev: number; author: string; authorName: string; timestamp: number; addedChars: number; formattedTime: string };
 
+/** Word-count and editing-time contribution for the review page author stats. */
+type AuthorWordStat = { authorName: string; wordCount: number; percentage: number; editingTimeFormatted: string };
+
+const countWords = (text: string): number =>
+  text.trim().split(/\s+/).filter((s) => s.length > 0).length;
+
+/** Revisions within this many ms are considered one continuous editing session. */
+const EDITING_SESSION_GAP_MS = 5 * 60 * 1000;
+
+/**
+ * Sums editing time from revision timestamps: sorts by time, groups into sessions
+ * where consecutive revisions are < EDITING_SESSION_GAP_MS apart, and sums
+ * (session end - session start) for each session.
+ */
+const computeEditingTimeMs = (timestamps: number[]): number => {
+  if (timestamps.length === 0) return 0;
+  const sorted = [...timestamps].sort((a, b) => a - b);
+  let total = 0;
+  let sessionStart = sorted[0];
+  let sessionEnd = sorted[0];
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i] - sessionEnd <= EDITING_SESSION_GAP_MS) {
+      sessionEnd = sorted[i];
+    } else {
+      total += sessionEnd - sessionStart;
+      sessionStart = sorted[i];
+      sessionEnd = sorted[i];
+    }
+  }
+  total += sessionEnd - sessionStart;
+  return total;
+};
+
+const formatEditingTime = (ms: number): string => {
+  if (ms < 0) return '0m';
+  const sec = Math.floor(ms / 1000);
+  const min = Math.floor(sec / 60);
+  const h = Math.floor(min / 60);
+  if (h > 0) return `${h}h ${min % 60}m`;
+  if (min > 0) return `${min}m`;
+  return `${sec}s`;
+};
+
 const formatReviewTime = (ts: number): string => {
   if (!ts) return '';
   return new Date(ts).toLocaleString();
@@ -237,6 +280,56 @@ const handleReviewPage = (entrypoint: string) => async (req: any, res: any, next
     const rangesPerRev: TextRange[][] = [];
     const largeAdditionItems: ReviewItem[] = [];
     const head = pad.getHeadRevisionNumber();
+
+    // Aggregate word count and revision timestamps per author across all revisions for stats.
+    const wordsByAuthorId = new Map<string, number>();
+    const timestampsByAuthorId = new Map<string, number[]>();
+    for (let rev = 1; rev <= head; rev++) {
+      const revData = await pad.getRevision(rev);
+      const author = revData.meta?.author ?? '';
+      const timestamp = revData.meta?.timestamp ?? 0;
+      const inserted = getInsertedStringsFromChangeset(revData.changeset).join('');
+      const words = countWords(inserted);
+      if (words > 0) {
+        wordsByAuthorId.set(author, (wordsByAuthorId.get(author) ?? 0) + words);
+      }
+      if (timestamp > 0) {
+        const arr = timestampsByAuthorId.get(author);
+        if (arr) arr.push(timestamp);
+        else timestampsByAuthorId.set(author, [timestamp]);
+      }
+    }
+    const editingTimeByAuthorId = new Map<string, number>();
+    for (const [authorId, timestamps] of timestampsByAuthorId) {
+      editingTimeByAuthorId.set(authorId, computeEditingTimeMs(timestamps));
+    }
+    const totalWords = [...wordsByAuthorId.values()].reduce((a, b) => a + b, 0);
+    const authorStats: AuthorWordStat[] = [];
+    if (totalWords > 0) {
+      const authorIds = [...wordsByAuthorId.keys()];
+      const names = await Promise.all(authorIds.map((id) =>
+        id ? authorManager.getAuthorName(id) : Promise.resolve(null)));
+      const wordsByAuthorName = new Map<string, number>();
+      const editingTimeByAuthorName = new Map<string, number>();
+      for (let i = 0; i < authorIds.length; i++) {
+        const authorName = names[i] || 'anonymous';
+        const wordCount = wordsByAuthorId.get(authorIds[i]) ?? 0;
+        wordsByAuthorName.set(authorName, (wordsByAuthorName.get(authorName) ?? 0) + wordCount);
+        const editingMs = editingTimeByAuthorId.get(authorIds[i]) ?? 0;
+        editingTimeByAuthorName.set(authorName, (editingTimeByAuthorName.get(authorName) ?? 0) + editingMs);
+      }
+      for (const [authorName, wordCount] of wordsByAuthorName) {
+        const editingMs = editingTimeByAuthorName.get(authorName) ?? 0;
+        authorStats.push({
+          authorName,
+          wordCount,
+          percentage: Math.round((wordCount / totalWords) * 1000) / 10,
+          editingTimeFormatted: formatEditingTime(editingMs),
+        });
+      }
+      authorStats.sort((a, b) => b.wordCount - a.wordCount);
+    }
+
     for (let rev = 1; rev <= head; rev++) {
       const revData = await pad.getRevision(rev);
       const changeset = revData.changeset;
@@ -357,6 +450,7 @@ const handleReviewPage = (entrypoint: string) => async (req: any, res: any, next
       reviewedPadPath,
       backToPadPath,
       largeAdditionItems,
+      authorStats,
       padName: padId,
     }));
   } catch (err: any) {
