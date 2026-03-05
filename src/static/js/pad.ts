@@ -420,7 +420,6 @@ const pad = {
     $(() => (async () => {
       if (window.customStart != null) window.customStart();
       $('#colorpicker').farbtastic({callback: '#mycolorpickerpreview', width: 220});
-      $('#readonlyinput').on('click', () => { padeditbar.setEmbedLinks(); });
       padcookie.init();
       await handshake();
       this._afterHandshake();
