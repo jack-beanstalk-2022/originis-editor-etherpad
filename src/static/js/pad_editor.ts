@@ -86,12 +86,13 @@ const padeditor = (() => {
       // delete pad
       $('#delete-pad').on('click', () => {
         if (window.confirm(html10n.get('pad.delete.confirm'))) {
-          pad.collabClient.sendMessage({type: 'PAD_DELETE', data:{padId: pad.getPadId()}});
+          const deletedPadId = pad.getPadId();
+          pad.collabClient.sendMessage({type: 'PAD_DELETE', data:{padId: deletedPadId}});
           // Remove from Recent Pads so it doesn't show on the home page after redirect
           const raw = localStorage.getItem('recentPads');
           if (raw != null) {
             const list = JSON.parse(raw);
-            const filtered = list.filter((p: { name: string }) => p.name !== padId);
+            const filtered = list.filter((p: { name: string }) => p.name !== deletedPadId);
             localStorage.setItem('recentPads', JSON.stringify(filtered));
           }
           // redirect to home page after deletion
