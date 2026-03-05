@@ -266,18 +266,9 @@ exports.padeditbar = new class {
     const params = '?showControls=true&showChat=true&showLineNumbers=true&useMonospaceFont=false';
     const props = 'width="100%" height="600" frameborder="0"';
 
-    if ($('#readonlyinput').is(':checked')) {
-      const urlParts = padUrl.split('/');
-      urlParts.pop();
-      const readonlyLink = `${urlParts.join('/')}/${clientVars.readOnlyId}`;
-      $('#embedinput')
-          .val(`<iframe name="embed_readonly" src="${readonlyLink}${params}" ${props}></iframe>`);
-      $('#linkinput').val(readonlyLink);
-    } else {
-      $('#embedinput')
-          .val(`<iframe name="embed_readwrite" src="${padUrl}${params}" ${props}></iframe>`);
-      $('#linkinput').val(padUrl);
-    }
+    $('#embedinput')
+        .val(`<iframe name="embed_readwrite" src="${padUrl}${params}" ${props}></iframe>`);
+    $('#linkinput').val(padUrl);
   }
   checkAllIconsAreDisplayedInToolbar() {
     // reset style
