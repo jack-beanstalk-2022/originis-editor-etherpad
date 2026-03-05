@@ -446,7 +446,6 @@ const settings: SettingsType = {
       ['bold', 'italic', 'underline', 'strikethrough'],
       ['orderedlist', 'unorderedlist', 'indent', 'outdent'],
       ['undo', 'redo'],
-      ['clearauthorship'],
     ],
     right: [
       ['importexport', 'timeslider', 'savedrevision'],

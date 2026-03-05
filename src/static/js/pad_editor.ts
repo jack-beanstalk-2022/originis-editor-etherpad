@@ -153,7 +153,7 @@ const padeditor = (() => {
       self.ace.setProperty('showslinenumbers', v);
       padutils.setCheckbox($('#options-linenoscheck'), v);
 
-      v = getOption('showAuthorColors', true);
+      v = getOption('showAuthorColors', false);
       self.ace.setProperty('showsauthorcolors', v);
       $('#chattext').toggleClass('authorColors', v);
       $('iframe[name="ace_outer"]').contents().find('#sidedivinner').toggleClass('authorColors', v);
