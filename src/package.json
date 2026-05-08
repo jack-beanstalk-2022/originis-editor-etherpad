@@ -41,7 +41,7 @@
     "express-rate-limit": "^8.2.1",
     "express-session": "^1.19.0",
     "find-root": "1.1.0",
-    "firebase-admin": "^13.6.0",
+    "firebase-admin": "^13.9.0",
     "formidable": "^3.5.4",
     "http-errors": "^2.0.1",
     "jose": "^6.1.3",
